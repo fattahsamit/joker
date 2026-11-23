@@ -1,0 +1,59 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      # No .env file exists in CI, so every required variable comes from here.
+      # Repo variables/secrets override the public demo defaults.
+      ENV: ci
+      BASE_URL: ${{ vars.BASE_URL || 'https://www.saucedemo.com' }}
+      API_URL: ${{ vars.API_URL || 'https://jsonplaceholder.typicode.com' }}
+      USERNAME: ${{ secrets.TEST_USERNAME || 'standard_user' }}
+      PASSWORD: ${{ secrets.TEST_PASSWORD || 'secret_sauce' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint and type check
+        run: npm run lint && npm run typecheck
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run tests
+        run: npx playwright test
+
+      - name: Upload HTML report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload traces, screenshots and videos
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 14

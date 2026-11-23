@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Environment and secrets (.env.example is the committed template)
+.env*
+!.env.example
+
+# Playwright output
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
